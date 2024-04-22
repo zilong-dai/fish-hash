@@ -245,7 +245,7 @@ fn calculate_dataset_item_1024(light_cache: &[Hash512], index: usize) -> Hash102
 }
 
 pub fn hash(output: &mut [u8], context: &mut Context, header: &[u8]) {
-    let mut seed: Hash512 = Hash512::new();
+    let mut seed: Hash1024 = Hash1024::new();
 
     let mut hasher = blake3::Hasher::new();
     hasher.update(header);
@@ -255,15 +255,15 @@ pub fn hash(output: &mut [u8], context: &mut Context, header: &[u8]) {
     let mix_hash = fishhash_kernel(context, &seed);
 
     let mut final_data: [u8; 96] = [0; 96];
-    final_data[0..64].copy_from_slice(&seed.0);
+    final_data[0..64].copy_from_slice(&seed.0[0..64]);
     final_data[64..].copy_from_slice(&mix_hash.0);
 
     let hash = blake3::hash(&final_data);
     output.copy_from_slice(hash.as_bytes());
 }
 
-fn fishhash_kernel(context: &mut Context, seed: &Hash512) -> Hash256 {
-    let mut mix = Hash1024::from_512s(seed, seed);
+fn fishhash_kernel(context: &mut Context, seed: &Hash1024) -> Hash256 {
+    let mut mix = *seed;
 
     for _ in 0..NUM_DATASET_ACCESSES as usize {
         // Calculate new fetching indexes

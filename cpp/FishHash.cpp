@@ -135,11 +135,11 @@ namespace FishHash {
 		}
 	}
 
-	inline hash256 fishhash_kernel( const fishhash_context& ctx, const hash512& seed) noexcept {
+	inline hash256 fishhash_kernel( const fishhash_context& ctx, const hash1024& seed) noexcept {
 		const uint32_t index_limit = static_cast<uint32_t>(ctx.full_dataset_num_items);
 		const uint32_t seed_init = seed.word32s[0];
 	    
-		hash1024 mix{seed, seed};
+		hash1024 mix = seed;
 
 		for (uint32_t i = 0; i < num_dataset_accesses; ++i) {
 					
@@ -177,18 +177,18 @@ namespace FishHash {
 	}
 
 	void hash(uint8_t * output, const fishhash_context * ctx, const uint8_t * header, uint64_t header_size) noexcept {
-		hash512 seed; 
+		hash1024 seed; 
 	   
 		blake3_hasher hasher;
 		blake3_hasher_init(&hasher);
 		blake3_hasher_update(&hasher, header, header_size);
-		blake3_hasher_finalize(&hasher, seed.bytes, 64);
+		blake3_hasher_finalize(&hasher, seed.bytes, 128);
 				
 		const hash256 mix_hash = fishhash_kernel(*ctx, seed);
 	    
-		uint8_t final_data[sizeof(seed) + sizeof(mix_hash)];
-		std::memcpy(&final_data[0], seed.bytes, sizeof(seed));
-		std::memcpy(&final_data[sizeof(seed)], mix_hash.bytes, sizeof(mix_hash));
+		uint8_t final_data[sizeof(seed) / 2 + sizeof(mix_hash)];
+		std::memcpy(&final_data[0], seed.bytes, sizeof(seed) / 2);
+		std::memcpy(&final_data[sizeof(seed) / 2], mix_hash.bytes, sizeof(mix_hash));
 	    
 		hash256 finValue;
 	    
