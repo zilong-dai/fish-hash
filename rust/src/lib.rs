@@ -69,6 +69,12 @@ impl HashData for Hash256 {
 #[derive(Clone, Copy, Debug)]
 pub struct Hash512([u8; 64]);
 
+impl Hash512 {
+    pub fn new_from(data: [u8; 64]) -> Self {
+        Self(data)
+    }
+}
+
 impl HashData for Hash512 {
     fn new() -> Self {
         Self([0; 64])
@@ -262,7 +268,7 @@ pub fn hash(output: &mut [u8], context: &mut Context, header: &[u8]) {
     output.copy_from_slice(hash.as_bytes());
 }
 
-fn fishhash_kernel(context: &mut Context, seed: &Hash512) -> Hash256 {
+pub fn fishhash_kernel(context: &mut Context, seed: &Hash512) -> Hash256 {
     let mut mix = Hash1024::from_512s(seed, seed);
 
     for _ in 0..NUM_DATASET_ACCESSES as usize {
